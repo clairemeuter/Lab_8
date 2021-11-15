@@ -5,7 +5,7 @@ date: "11/15/2021"
 output: html_document
 ---
 
-```{r setup, include=FALSE, messsgae = FAlSE, warning = FALSE}
+```{r setup, include=FALSE, messsgae = FALSE, warning = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 #attach packages 
 library(tidyverse)
@@ -89,6 +89,69 @@ corrplot(homes_cor)
 homes_lm1
 ```
 
+# The way we interpret values in homes_lm1- if everything else is the same, I would expect a home in Atascadero to cost $9,068 less than a house in Arroyo Grande 
+# How would I explore the diagnositic plots? 
+```{r}
+plot(homes_lm1)
+```
+
+# Lets try another model 
+
+Try another model where we simplfy this a bit: 
+Only include variables for 
+- City
+- SqFt
+- Status 
+```{r}
+homes_lm2 <- lm(Price ~ City + SqFt + Status, data = homes_sub)
+homes_lm2 #call this to view 
+plot(homes_lm2)
+```
+Let's talk about model fit- look at summary(homes_lm1)
+we get 0.84 for R^2- this means that 84% of the variance in home price is explained by the variable predictors in this model 
+That still means there's 16% of variables that explain variance that we don't have 
+p-value: < 2.2e-16 
+
+Let's look at our second model summary(homes_lm2)
+This model only describes 52.68% of variance 
+ 
+ Now we find the AIC value of each model 
+```{r}
+AIC(homes_lm1)
+AIC(homes_lm2)
+
+# A lower AIC values indicated a better balance between model fit and model complexity 
+# Looking at our numbers- the first one is a better option, but we still have some read flags about using this one. So maybe we need to find an intermediate model that includes some different variables 
+```
+ 
+ ### so let's try another premuatation of this model that you think might make sense, check out and compare the model fit, outputs and AIC value 
+```{r}
+homes_lm3 <- lm(Price ~ City + Bedrooms + SqFt + Status, data = homes_sub)
+plot(homes_lm3)
+homes_lm3
+summary(homes_lm3)
+AIC(homes_lm3)
+```
+So this can help us think about how variables are related but none of them make a great model 
+
+use `modelsummary` to show model outputs side-by-side: 
+Heads up - if you use modelsummary to return outputs of multiple models, it wants you to feed it as a list 
+```{r}
+modelsummary(list(homes_lm1, homes_lm2, homes_lm3))
+```
+## Start making predictions with this model 
+
+use `broom::augment()`
+
+```{r}
+homes_predicted <- augment(homes_lm1)
+```
+ 
+You can use the `preedict()` function to try out your model on new scenarios that you create 
+
+
+How work in a branch and push changes: 
+click on purple button in Git tab- make sure it says sync branch with remote- now you will see which branch you are working one 
 
 
 
