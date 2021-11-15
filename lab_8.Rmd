@@ -1,0 +1,94 @@
+---
+title: "Lab 8"
+author: "Claire Meuter"
+date: "11/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE, messsgae = FAlSE, warning = FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+#attach packages 
+library(tidyverse)
+library(corrplot)
+library(broom)
+library(modelsummary)
+library(here)
+library(stargazer) #won't download?
+```
+## Read in data 
+```{r}
+homes <- read.csv(here("slo_homes.csv"))
+
+```
+
+make subset called homes_sub that only contains observations (rows) where the city is: 
+- San Luis Obispo
+- Arroyo Grande
+- Atascadero
+- Santa Maria-Orcutt
+
+
+```{r}
+homes_sub <- homes %>%
+  filter(City %in% c ("San Luis Obispo", "Arroyo Grande", "Atascadero", "Santa Maria-Orcutt"))
+```
+
+
+## Do a little exploration of the data 
+
+
+Summarry statistics (home price, based on city and sale status)
+- Find and return in a nice sumary table the mean and standard deviation of home price, grouped by city and sale status
+
+```{r, include=FALSE, eval = FALSE} 
+# If i don't want to include this code I can do include = FAlSE 
+summary_table <-  homes_sub %>%
+  group_by(City, Status) %>%
+  summarize(mean_price = mean(Price, na.rm = TRUE), 
+            sd_price = sd(Price, na.rm = TRUE))
+view(summary_table)
+
+#If I want to store but not run chunky code I can use eval = FALSE
+```
+
+Data visualization 
+Home prices by city
+```{r}
+ggplot(data = homes_sub, aes(x = Price)) +
+  geom_density(aes(color = City, fill = City), alpha = 0.3) +  # work within aes is when it refers to an aesthic, if it's referring to a constant, ilke the alpha, it would go outside aes. Alpha refers to transparency of fill 
+  scale_x_continuous(limits = c(0, 3e6)) #generic function to change conditions about x-axis IF it's continous 
+
+
+
+```
+# This plot is just exploratory- but we notice that it is similar to our data table. Ex- there is a higher densisty of lower priced homes in Santa Maria- so we might suggest it's cheaper to buy home in Santa Maria. When we visualize our data different ways, do we see the same things coming up?
+
+# Another Task: Explore the relationship (visual data exploration) Between square footage and home price. Change the point color by city and the point shape by sale status
+
+```{r}
+ggplot(data = homes_sub, aes(x = SqFt, y = Price)) + geom_point(aes(color = City, shape = Status)) + geom_smooth(method = lm)
+```
+
+## Model the relationship with home prive as DV
+
+Saturated model 
+```{r}
+homes_lm1 <- lm(Price ~ City + Bedrooms + Bathrooms + SqFt + PricePerSqFt + Status, data = homes_sub)
+# looking at this data set- PricePerSquareFt is going to be redundant of price and SqFt. Other examples might be if there's going to be an obvious correlation between bathrooms and bedrooms
+
+# Make a subset that only contains the quantative valiables 
+
+homes_quant <- homes_sub %>%
+  select(Price: PricePerSqFt)
+homes_cor <- cor(homes_quant)
+homes_cor
+## If i want to make a corrlation plot I can do:
+corrplot(homes_cor)
+
+
+homes_lm1
+```
+
+
+
+
